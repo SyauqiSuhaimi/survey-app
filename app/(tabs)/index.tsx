@@ -1,21 +1,9 @@
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import Toast from "react-native-toast-message";
 import FormComp from "../components/form";
+import { getQuestion } from "../services/SurveyServices";
 import "./../global.css";
-const questions = [
-  {
-    id: 1,
-    question: "What is your name?",
-  },
-  {
-    id: 2,
-    question: "What is your age?",
-  },
-  {
-    id: 3,
-    question: "Where do you live?",
-  },
-];
 
 const previousAnswers = [
   {
@@ -36,9 +24,26 @@ const previousAnswers = [
 ];
 
 export default function Index() {
+  const [questions, setQuestions] = useState([]);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const response = await getQuestion();
+        setQuestions(response); // Adjust if response shape is different
+      } catch (error) {
+        Toast.show({
+          type: "error",
+          text1: "Failed to load questions",
+        });
+      }
+    };
+    fetchQuestions();
+  }, []);
+
   return (
     <View className="h-full flex justify-center items-center">
-      <FormComp questions={questions} previousAnswers={previousAnswers} />
+      <FormComp questions={questions} previousAnswers={undefined} />
       <Toast />
     </View>
   );

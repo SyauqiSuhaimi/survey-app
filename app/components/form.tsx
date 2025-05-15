@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, Text, TextInput, View } from "react-native";
 import Toast from "react-native-toast-message";
+import { submitSurveyAnswers } from "../services/SurveyServices"; // <-- import the API function
 import "./../global.css";
 
 interface Question {
@@ -11,7 +12,7 @@ interface Question {
 interface Answer {
   id: number;
   answer: string;
-  question_id: number;
+  questionId: number;
 }
 
 const FormComp = ({
@@ -31,10 +32,10 @@ const FormComp = ({
     }
   }, [previousAnswers]);
 
-  const handleChange = (question_id: number, value: string) => {
+  const handleChange = (questionId: number, value: string) => {
     setAnswers((prevAnswers) => {
       const existingAnswerIndex = prevAnswers.findIndex(
-        (a) => a.question_id === question_id
+        (a) => a.questionId === questionId
       );
 
       if (existingAnswerIndex !== -1) {
@@ -44,7 +45,7 @@ const FormComp = ({
       } else {
         return [
           ...prevAnswers,
-          { id: prevAnswers.length, answer: value, question_id },
+          { id: prevAnswers.length, answer: value, questionId },
         ];
       }
     });
@@ -52,24 +53,13 @@ const FormComp = ({
 
   const handleSave = async () => {
     try {
-      const response = await fetch("https://your-api-endpoint.com/survey", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers }),
-      });
+      await submitSurveyAnswers(answers);
 
-      if (response.ok) {
-        Toast.show({
-          type: "success",
-          text1: "Survey saved!",
-        });
-        setAnswers([]); // Clear answers
-      } else {
-        Toast.show({
-          type: "error",
-          text1: "Failed to save survey.",
-        });
-      }
+      Toast.show({
+        type: "success",
+        text1: "Survey saved!",
+      });
+      setAnswers([]); 
     } catch (error) {
       Toast.show({
         type: "error",
@@ -89,7 +79,7 @@ const FormComp = ({
                 ? "border-gray-200 bg-gray-100 text-gray-400"
                 : "border-gray-300 bg-white text-black"
             }`}
-            value={answers.find((a) => a.question_id === q.id)?.answer || ""}
+            value={answers.find((a) => a.questionId === q.id)?.answer || ""}
             onChangeText={(text) => handleChange(q.id, text)}
             editable={!disabled}
             style={{
